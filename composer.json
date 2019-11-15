@@ -1,0 +1,20 @@
+{
+    "name": "liujiang/ueditor_extend",
+    "description": "可扩展支持阿里云OSS/七牛云",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "刘江江",
+            "email": "469028589@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "UeditorExtend\\": "src/"
+        }
+    }
+}
