@@ -5,8 +5,6 @@
 如果使用了云端上传功能，需要下载云上传扩展包，比如阿里云oss的aliyuncs/oss-sdk-php。
 
 # 实例代码（tp5为例）
-<?php
-
 namespace app\admin\controller;
 
 use OSS\OssClient;
