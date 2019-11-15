@@ -8,6 +8,7 @@ class Ueditor
     private $action;
     private $file;
     private $http_get;
+    private $oss_func;
     public function __construct($get, $config = [])
     {
         if ($config) {
@@ -18,7 +19,7 @@ class Ueditor
         $this->action = $get['action'];
         $this->http_get = $get;
     }
-    public function upload()
+    public function upload($oss_func = '')
     {
         $CONFIG = $this->config;
         switch ($this->action) {
@@ -33,7 +34,7 @@ class Ueditor
             case 'uploadvideo':
                 /* 上传文件 */
             case 'uploadfile':
-                $result = $this->uploadFile();
+                $result = $this->uploadFile($oss_func);
                 break;
 
                 /* 列出图片 */
@@ -51,9 +52,9 @@ class Ueditor
                 break;
 
             default:
-                $result = json_encode(array(
+                $result = array(
                     'state' => '请求地址出错'
-                ));
+                );
                 break;
         }
         /* 输出结果 */
@@ -67,7 +68,7 @@ class Ueditor
             return $result;
         }
     }
-    public function uploadFile()
+    public function uploadFile($oss_func = '')
     {
         $CONFIG = $this->config;
         $base64 = "upload";
@@ -108,8 +109,9 @@ class Ueditor
                 $fieldName = $CONFIG['fileFieldName'];
                 break;
         }
+        $config['oss'] = $CONFIG['oss'];
         /* 生成上传实例对象并完成上传 */
-        $up = new UeditorUploader($fieldName, $config, $base64);
+        $up = new UeditorUploader($fieldName, $config, $base64, $oss_func);
 
         return $up->getFileInfo();
     }
@@ -198,15 +200,10 @@ class Ueditor
                 "source" => htmlspecialchars($imgUrl)
             ));
         }
-        if ($CONFIG['oss'] && count($list) > 0) { 
-            return $list[0];
-        } else {
-            /* 返回抓取数据 */
-            return array(
-                'state' => count($list) ? 'SUCCESS' : 'ERROR',
-                'list' => $list
-            );
-        }
+        return array(
+            'state' => count($list) ? 'SUCCESS' : 'ERROR',
+            'list' => $list
+        );
     }
     /**
      * 遍历获取目录下的指定类型的文件

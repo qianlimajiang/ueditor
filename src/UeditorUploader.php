@@ -45,31 +45,31 @@ class UeditorUploader
         "INVALID_URL" => "非法 URL",
         "INVALID_IP" => "非法 IP"
     );
-
+    private $oss_func;
     /**
      * 构造函数
      * @param string $fileField 表单名称
      * @param array $config 配置项
      * @param bool $base64 是否解析base64编码，可省略。若开启，则$fileField代表的是base64编码的字符串表单名
      */
-    public function __construct($fileField, $config, $type = "upload")
+    public function __construct($fileField, $config, $type = "upload", $oss_func)
     {
         $this->fileField = $fileField;
         $this->config = $config;
         $this->type = $type;
 
         if ($type == "remote") {
-            $this->saveRemote();
+            $this->saveRemote($oss_func);
         } else if ($type == "base64") {
-            $this->upBase64();
+            $this->upBase64($oss_func);
         } else {
-            $this->upFile();
+            $this->upFile($oss_func);
         }
 
         //ueditor源代码为iconv()函数转换会报错
         $this->stateMap['ERROR_TYPE_NOT_ALLOWED'] = $this->unicode_to_utf8('unicode', 'utf-8', $this->stateMap['ERROR_TYPE_NOT_ALLOWED']);
     }
-    
+
     public function unicode_to_utf8($unicode_str)
     {
         $utf8_str = '';
@@ -86,7 +86,7 @@ class UeditorUploader
      * 上传文件的主处理方法
      * @return mixed
      */
-    private function upFile()
+    private function upFile($oss_func='')
     {
         $file = $this->file = $_FILES[$this->fileField];
         if (!$file) {
@@ -134,10 +134,16 @@ class UeditorUploader
         }
 
         //移动文件
-        if (!(move_uploaded_file($file["tmp_name"], $this->filePath) && file_exists($this->filePath))) { //移动失败
-            $this->stateInfo = $this->getStateInfo("ERROR_FILE_MOVE");
-        } else { //移动成功
+        if ($this->config['oss']) { 
+            $res = $oss_func($this->oriName, file_get_contents($file["tmp_name"]));
+            $this->fullName = $res;
             $this->stateInfo = $this->stateMap[0];
+        } else {
+            if (!(move_uploaded_file($file["tmp_name"], $this->filePath) && file_exists($this->filePath))) { //移动失败
+                $this->stateInfo = $this->getStateInfo("ERROR_FILE_MOVE");
+            } else { //移动成功
+                $this->stateInfo = $this->stateMap[0];
+            }
         }
     }
 
@@ -145,7 +151,7 @@ class UeditorUploader
      * 处理base64编码的图片上传
      * @return mixed
      */
-    private function upBase64()
+    private function upBase64($oss_func='')
     {
         $base64Data = $_POST[$this->fileField];
         $img = base64_decode($base64Data);
@@ -174,10 +180,16 @@ class UeditorUploader
         }
 
         //移动文件
-        if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
-            $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
-        } else { //移动成功
+        if ($this->config['oss']) { 
+            $res = $oss_func($this->oriName, file_get_contents($this->filePath));
+            $this->fullName = $res;
             $this->stateInfo = $this->stateMap[0];
+        } else {
+            if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
+                $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
+            } else { //移动成功
+                $this->stateInfo = $this->stateMap[0];
+            }
         }
     }
 
@@ -185,7 +197,7 @@ class UeditorUploader
      * 拉取远程图片
      * @return mixed
      */
-    private function saveRemote()
+    private function saveRemote($oss_func='')
     {
         $imgUrl = htmlspecialchars($this->fileField);
         $imgUrl = str_replace("&amp;", "&", $imgUrl);
@@ -265,10 +277,16 @@ class UeditorUploader
         }
 
         //移动文件
-        if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
-            $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
-        } else { //移动成功
+        if ($this->config['oss']) { 
+            $res = $oss_func($this->oriName, file_get_contents($this->filePath));
+            $this->fullName = $res;
             $this->stateInfo = $this->stateMap[0];
+        } else {
+            if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
+                $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
+            } else { //移动成功
+                $this->stateInfo = $this->stateMap[0];
+            }
         }
     }
 

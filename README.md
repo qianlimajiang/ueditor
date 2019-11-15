@@ -4,10 +4,13 @@
 默认配置未开启云上传，需将配置文件中的oss设置为true。如果使用了云端上传功能，需要下载云上传扩展包，比如阿里云oss的aliyuncs/oss-sdk-php。
 
 # 实例代码（tp5为例）
+<?php
+
 namespace app\admin\controller;
 
 use OSS\OssClient;
 use OSS\Core\OssException;
+use think\Exception;
 use UeditorExtend\Ueditor as UeditorExtendUeditor;
 
 class Ueditor extends Base
@@ -17,34 +20,30 @@ class Ueditor extends Base
         $get = $this->request->get();
 
         $config = include(APP_PATH . '/admin/extra/ueditor.php');
-        //如果开启了oss则在这里增加判断即可，如果没有开启，可忽略此处代码
-        if ($config['oss'] && $_FILES && isset($_FILES['upfile']['tmp_name'])) {
-            $accessKeyId = "**************";
-            $accessKeySecret = "**************";
+
+        $ueditor = new UeditorExtendUeditor($get, $config);
+
+        //如果没有开启云上传，则不用写回调函数，参数为空就好
+        $res = $ueditor->upload(function ($object, $file) {
+            $accessKeyId = "阿里云oss-key";
+            $accessKeySecret = "阿里云密钥";
             $endpoint = "oss-cn-beijing.aliyuncs.com";
 
             try {
                 $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             } catch (OssException $e) {
-                print $e->getMessage();
+                throw new Exception($e->getMessage());
             }
 
-            $bucket = "******";
-            $object = uniqid() . '.jpg'; //文件名称
+            $bucket = "test";
+
             try {
-                $result = $ossClient->uploadFile($bucket, $object, $_FILES['upfile']['tmp_name']);
+                $result = $ossClient->putObject($bucket, $object, $file);
             } catch (OssException $e) {
-                print $e->getMessage();
+                throw new Exception($e->getMessage());
             }
-            $res_url = $result['info']['url'];
-            
-            $get['action'] = 'catchimage';
-            $fieldName = $config['catcherFieldName'];
-            $_POST[$fieldName] = [$res_url];
-        }
-        //如果没有开启oss上传，直接写这两行代码即可
-        $ueditor = new UeditorExtendUeditor($get, $config);
-        $res = $ueditor->upload();
+            return $result['info']['url'];
+        });
 
         return json($res);
     }
