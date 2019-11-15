@@ -86,7 +86,7 @@ class UeditorUploader
      * 上传文件的主处理方法
      * @return mixed
      */
-    private function upFile($oss_func='')
+    private function upFile($oss_func = '')
     {
         $file = $this->file = $_FILES[$this->fileField];
         if (!$file) {
@@ -124,21 +124,20 @@ class UeditorUploader
             return;
         }
 
-        //创建目录失败
-        if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
-            return;
-        } else if (!is_writeable($dirname)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
-            return;
-        }
-
         //移动文件
-        if ($this->config['oss']) { 
-            $res = $oss_func($this->oriName, file_get_contents($file["tmp_name"]));
-            $this->fullName = $res;
+        if ($this->config['oss']) {
+            $this->fullName = ltrim(str_replace('/', '-', $this->fullName), '-');
+            $this->fullName = $oss_func($this->fullName, file_get_contents($file["tmp_name"]));
             $this->stateInfo = $this->stateMap[0];
         } else {
+            //创建目录失败
+            if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
+                return;
+            } else if (!is_writeable($dirname)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
+                return;
+            }
             if (!(move_uploaded_file($file["tmp_name"], $this->filePath) && file_exists($this->filePath))) { //移动失败
                 $this->stateInfo = $this->getStateInfo("ERROR_FILE_MOVE");
             } else { //移动成功
@@ -151,7 +150,7 @@ class UeditorUploader
      * 处理base64编码的图片上传
      * @return mixed
      */
-    private function upBase64($oss_func='')
+    private function upBase64($oss_func = '')
     {
         $base64Data = $_POST[$this->fileField];
         $img = base64_decode($base64Data);
@@ -170,21 +169,20 @@ class UeditorUploader
             return;
         }
 
-        //创建目录失败
-        if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
-            return;
-        } else if (!is_writeable($dirname)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
-            return;
-        }
-
         //移动文件
-        if ($this->config['oss']) { 
-            $res = $oss_func($this->oriName, file_get_contents($this->filePath));
-            $this->fullName = $res;
+        if ($this->config['oss']) {
+            $this->fullName = ltrim(str_replace('/', '-', $this->fullName), '-');
+            $this->fullName = $oss_func($this->fullName, file_get_contents($this->filePath));
             $this->stateInfo = $this->stateMap[0];
         } else {
+            //创建目录失败
+            if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
+                return;
+            } else if (!is_writeable($dirname)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
+                return;
+            }
             if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
                 $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
             } else { //移动成功
@@ -197,7 +195,7 @@ class UeditorUploader
      * 拉取远程图片
      * @return mixed
      */
-    private function saveRemote($oss_func='')
+    private function saveRemote($oss_func = '')
     {
         $imgUrl = htmlspecialchars($this->fileField);
         $imgUrl = str_replace("&amp;", "&", $imgUrl);
@@ -267,21 +265,21 @@ class UeditorUploader
             return;
         }
 
-        //创建目录失败
-        if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
-            return;
-        } else if (!is_writeable($dirname)) {
-            $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
-            return;
-        }
-
         //移动文件
-        if ($this->config['oss']) { 
+        if ($this->config['oss']) {
             $res = $oss_func($this->oriName, file_get_contents($this->filePath));
             $this->fullName = $res;
             $this->stateInfo = $this->stateMap[0];
         } else {
+            //创建目录失败
+            if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
+                return;
+            } else if (!is_writeable($dirname)) {
+                $this->stateInfo = $this->getStateInfo("ERROR_DIR_NOT_WRITEABLE");
+                return;
+            }
+
             if (!(file_put_contents($this->filePath, $img) && file_exists($this->filePath))) { //移动失败
                 $this->stateInfo = $this->getStateInfo("ERROR_WRITE_CONTENT");
             } else { //移动成功
