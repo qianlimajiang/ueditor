@@ -39,11 +39,11 @@ class Ueditor
 
                 /* 列出图片 */
             case 'listimage':
-                $result = $this->list();
+                $result = $this->ulist();
                 break;
                 /* 列出文件 */
             case 'listfile':
-                $result = $this->list();
+                $result = $this->ulist();
                 break;
 
                 /* 抓取远程文件 */
@@ -115,7 +115,7 @@ class Ueditor
 
         return $up->getFileInfo();
     }
-    public function list()
+    public function ulist()
     {
         $_GET = $this->http_get;
         $CONFIG = $this->config;
